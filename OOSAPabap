@@ -1,0 +1,77 @@
+*class definition
+CLASS zcl_product DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    TYPES: BEGIN OF ty_product,
+             id    TYPE i,
+             name  TYPE string,
+             price TYPE p DECIMALS 2,
+           END OF ty_product.
+
+    METHODS: constructor
+      IMPORTING
+        VALUE(id) TYPE i
+        VALUE(name) TYPE string
+        VALUE(price) TYPE p DECIMALS 2,
+      get_product_info
+      RETURNING
+        VALUE(product_info) TYPE ty_product,
+      set_price
+      IMPORTING
+        VALUE(new_price) TYPE p DECIMALS 2.
+
+  PRIVATE SECTION.
+    DATA: mv_product TYPE ty_product.
+ENDCLASS.
+
+*class implemetation
+CLASS zcl_product IMPLEMENTATION.
+
+  METHOD constructor.
+    mv_product-id = id.
+    mv_product-name = name.
+    mv_product-price = price.
+  ENDMETHOD.
+
+  METHOD get_product_info.
+    product_info = mv_product.
+  ENDMETHOD.
+
+  METHOD set_price.
+    mv_product-price = new_price.
+  ENDMETHOD.
+
+ENDCLASS.
+
+*use of the class
+REPORT zproduct_example.
+
+DATA: lo_product TYPE REF TO zcl_product,
+      lv_product_info TYPE zcl_product=>ty_product.
+
+" Create a new product instance
+CREATE OBJECT lo_product
+  EXPORTING
+    id    = 1
+    name  = 'Laptop'
+    price = 999.99.
+
+" Get product information
+lv_product_info = lo_product->get_product_info( ).
+
+" Display product information
+WRITE: / 'Product ID:', lv_product_info-id,
+       / 'Product Name:', lv_product_info-name,
+       / 'Product Price:', lv_product_info-price.
+
+" Update product price
+lo_product->set_price( 1099.99 ).
+
+" Get updated product information
+lv_product_info = lo_product->get_product_info( ).
+
+" Display updated product information
+WRITE: / 'Updated Product Price:', lv_product_info-price.
