@@ -1,0 +1,84 @@
+*1: Inner Join
+
+DATA: lt_product_info TYPE TABLE OF string,
+      lv_product_info TYPE string.
+
+SELECT p~id, p~name, c~category_name
+  INTO TABLE lt_product_info
+  FROM zproducts AS p
+  INNER JOIN zcategories AS c ON p~category_id = c~id.
+
+LOOP AT lt_product_info INTO lv_product_info.
+  WRITE: / lv_product_info.
+ENDLOOP.
+
+* 2: Left Outer Join
+DATA: lt_product_orders TYPE TABLE OF string,
+      lv_product_orders TYPE string.
+
+SELECT p~id, p~name, o~order_id, o~quantity
+  INTO TABLE lt_product_orders
+  FROM zproducts AS p
+  LEFT OUTER JOIN zorders AS o ON p~id = o~product_id.
+
+LOOP AT lt_product_orders INTO lv_product_orders.
+  WRITE: / lv_product_orders.
+ENDLOOP.
+
+*3: Right Outer Join
+DATA: lt_order_products TYPE TABLE OF string,
+      lv_order_products TYPE string.
+
+SELECT o~order_id, o~quantity, p~name
+  INTO TABLE lt_order_products
+  FROM zorders AS o
+  RIGHT OUTER JOIN zproducts AS p ON o~product_id = p~id.
+
+LOOP AT lt_order_products INTO lv_order_products.
+  WRITE: / lv_order_products.
+ENDLOOP.
+
+*4: Subquery
+DATA: lt_frequent_products TYPE TABLE OF string,
+      lv_frequent_product TYPE string.
+
+SELECT p~id, p~name
+  INTO TABLE lt_frequent_products
+  FROM zproducts AS p
+  WHERE p~id IN ( SELECT o~product_id
+                    FROM zorders AS o
+                    GROUP BY o~product_id
+                    HAVING COUNT(*) > 5 ).
+
+LOOP AT lt_frequent_products INTO lv_frequent_product.
+  WRITE: / lv_frequent_product.
+ENDLOOP.
+
+*5: Aggregation with Group By
+DATA: lt_product_sales TYPE TABLE OF string,
+      lv_product_sales TYPE string.
+
+SELECT p~id, p~name, SUM(o~quantity) AS total_quantity
+  INTO TABLE lt_product_sales
+  FROM zproducts AS p
+  INNER JOIN zorders AS o ON p~id = o~product_id
+  GROUP BY p~id, p~name.
+
+LOOP AT lt_product_sales INTO lv_product_sales.
+  WRITE: / lv_product_sales.
+ENDLOOP.
+
+*6: Complex Join with Multiple Tables
+DATA: lt_full_product_info TYPE TABLE OF string,
+      lv_full_product_info TYPE string.
+
+SELECT p~id, p~name, c~category_name, COALESCE(SUM(o~quantity), 0) AS total_quantity
+  INTO TABLE lt_full_product_info
+  FROM zproducts AS p
+  LEFT JOIN zcategories AS c ON p~category_id = c~id
+  LEFT JOIN zorders AS o ON p~id = o~product_id
+  GROUP BY p~id, p~name, c~category_name.
+
+LOOP AT lt_full_product_info INTO lv_full_product_info.
+  WRITE: / lv_full_product_info.
+ENDLOOP.
