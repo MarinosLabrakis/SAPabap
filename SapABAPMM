@@ -1,0 +1,37 @@
+*1. Materials Management (MM)
+DATA: lt_materials TYPE TABLE OF mara,
+      lv_material  TYPE mara-matnr.
+
+SELECT * FROM mara INTO TABLE lt_materials WHERE matnr BETWEEN '000000000001' AND '000000000100'.
+
+LOOP AT lt_materials INTO DATA(ls_material).
+  WRITE: / 'Material Number:', ls_material-matnr,
+         'Material Description:', ls_material-maktx.
+ENDLOOP.
+
+ *Example 2: Create Purchase Order
+  DATA: lt_po_items TYPE TABLE OF bapimepoitem,
+      lt_return   TYPE TABLE OF bapiret2,
+      ls_po_item  TYPE bapimepoitem,
+      lv_po_number TYPE bapipo.
+
+ls_po_item-po_item = '00010'.
+ls_po_item-material = 'MAT001'.
+ls_po_item-plant = 'PL01'.
+ls_po_item-quantity = '10'.
+ls_po_item-net_price = '100.00'.
+APPEND ls_po_item TO lt_po_items.
+
+CALL FUNCTION 'BAPI_PO_CREATE1'
+  EXPORTING
+    poheader = 'Header Data'
+  TABLES
+    poitem   = lt_po_items
+    return   = lt_return.
+
+IF sy-subrc = 0.
+  lv_po_number = lt_return[ 1 ]-message_v1.
+  WRITE: / 'Purchase Order Created:', lv_po_number.
+ELSE.
+  WRITE: / 'Error creating Purchase Order'.
+ENDIF.
