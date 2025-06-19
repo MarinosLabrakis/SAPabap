@@ -1,0 +1,34 @@
+*1. Financial Controlling (CO)
+
+DATA: lt_cost_centers TYPE TABLE OF cskh,
+      lv_cost_center   TYPE cskh-kostl.
+
+SELECT * FROM cskh INTO TABLE lt_cost_centers WHERE kostl BETWEEN '000000' AND '999999'.
+
+LOOP AT lt_cost_centers INTO DATA(ls_cost_center).
+  WRITE: / 'Cost Center:', ls_cost_center-kostl,
+         'Cost Center Name:', ls_cost_center-ktext.
+ENDLOOP.
+
+*Example 2: Create Internal Order
+DATA: lt_order_data TYPE TABLE OF bapiioorder,
+      lt_return     TYPE TABLE OF bapiret2,
+      ls_order_data TYPE bapiioorder.
+
+ls_order_data-order_type = 'Z1'.
+ls_order_data-order_name = 'New Internal Order'.
+APPEND ls_order_data TO lt_order_data.
+
+CALL FUNCTION 'BAPI_INTERNALORDER_CREATE'
+  EXPORTING
+    orderheader = 'Header Data'
+  TABLES
+    internalorder = lt_order_data
+    return        = lt_return.
+
+IF sy-subrc = 0.
+  WRITE: / 'Internal Order Created Successfully'.
+ELSE.
+  WRITE: / 'Error Creating Internal Order'.
+ENDIF.
+
