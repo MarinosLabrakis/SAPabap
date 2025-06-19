@@ -1,0 +1,66 @@
+*1: Class Definition
+CLASS zcl_sales_order_report DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    METHODS: constructor,
+             display_report.
+
+  PRIVATE SECTION.
+    TYPES: BEGIN OF ty_order,
+             order_id TYPE vbak-vbeln,
+             customer_name TYPE kna1-name1,
+             order_date TYPE vbak-audat,
+             total_amount TYPE vbak-netwr,
+           END OF ty_order.
+
+    DATA: it_orders TYPE TABLE OF ty_order,
+          lv_total_amount TYPE p DECIMALS 2.
+ENDCLASS.
+
+*implementation
+CLASS zcl_sales_order_report IMPLEMENTATION.
+
+  METHOD constructor.
+    " Initialize the report
+    SELECT vbak~vbeln, kna1~name1, vbak~audat, vbak~netwr
+      INTO TABLE it_orders
+      FROM vbak
+      INNER JOIN kna1 ON vbak~kunnr = kna1~kunnr
+      WHERE vbak~audat >= '20230101' " Example date filter
+      AND vbak~audat <= '20231231'.
+  ENDMETHOD.
+
+  METHOD display_report.
+    DATA: lv_line TYPE string.
+
+    " Check if orders were found
+    IF it_orders IS INITIAL.
+      WRITE: / 'No sales orders found for the specified date range.'.
+      RETURN.
+    ENDIF.
+
+    " Display header
+    WRITE: / 'Sales Order Report',
+           / '====================',
+           / 'Order ID', 20 'Customer Name', 40 'Order Date', 60 'Total Amount'.
+
+    LOOP AT it_orders INTO DATA(ls_order).
+      " Calculate total amount
+      lv_total_amount = lv_total_amount + ls_order-total_amount.
+
+      " Format output
+      WRITE: / ls_order-order_id,
+             20 ls_order-customer_name,
+             40 ls_order-order_date,
+             60 ls_order-total_amount.
+    ENDLOOP.
+
+    " Display total amount
+    WRITE: / '====================',
+           / 'Total Amount:', lv_total_amount.
+  ENDMETHOD.
+
+ENDCLASS.
