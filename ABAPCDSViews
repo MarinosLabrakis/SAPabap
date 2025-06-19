@@ -1,0 +1,50 @@
+*Example 1: ABAP CDS Views
+
+**Step 1: Create a CDS View
+@AbapCatalog.sqlViewName: 'ZCDS_SALES_ORDER_DETAIL'
+@AbapCatalog.compiler.compareFilter: 'ZCDS_SALES_ORDER_DETAIL'
+@AccessControl.authorizationCheck: #CHECK
+@EndUser Text.label: 'Sales Order Detail CDS View'
+define view ZCDS_SALES_ORDER_DETAIL as select from vbak
+  inner join kna1 on vbak.kunnr = kna1.kunnr
+  inner join vbap on vbak.vbeln = vbap.vbeln
+{
+  key vbak.vbeln as order_id,
+      kna1.name1 as customer_name,
+      vbak.audat as order_date,
+      vbap.matnr as material_number,
+      vbap.netpr as net_price,
+      vbap.kwmeng as order_quantity,
+      vbap.netwr as total_amount
+}
+
+**Step 2: Use the CDS View in ABAP
+REPORT zsales_order_detail_report.
+
+DATA: lt_sales_orders TYPE TABLE OF zcds_sales_order_detail,
+      lv_total_amount TYPE p DECIMALS 2.
+
+SELECT * FROM zcds_sales_order_detail INTO TABLE lt_sales_orders.
+
+IF sy-subrc <> 0.
+  WRITE: / 'No sales orders found.'.
+  EXIT.
+ENDIF.
+
+WRITE: / 'Sales Order Detail Report',
+       / '==========================',
+       / 'Order ID', 20 'Customer Name', 40 'Order Date', 60 'Material Number', 80 'Net Price', 100 'Quantity', 120 'Total Amount'.
+
+LOOP AT lt_sales_orders INTO DATA(ls_order).
+  lv_total_amount = lv_total_amount + ls_order-total_amount.
+  WRITE: / ls_order-order_id,
+         20 ls_order-customer_name,
+         40 ls_order-order_date,
+         60 ls_order-material_number,
+         80 ls_order-net_price,
+         100 ls_order-order_quantity,
+         120 ls_order-total_amount.
+ENDLOOP.
+
+WRITE: / '==========================',
+       / 'Total Amount:', lv_total_amount.
