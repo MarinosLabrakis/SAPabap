@@ -1,0 +1,23 @@
+REPORT zfactorial_calculator.
+
+DATA: lv_number TYPE i,        " Variable to hold the input number
+      lv_factorial TYPE i VALUE 1, " Variable to hold the factorial result
+      lv_counter TYPE i.       " Counter for the loop
+
+" Get user input
+PARAMETERS: p_number TYPE i OBLIGATORY.
+
+" Calculate factorial
+lv_number = p_number.
+
+IF lv_number < 0.
+  WRITE: / 'Factorial is not defined for negative numbers.'.
+ELSEIF lv_number = 0.
+  WRITE: / 'The factorial of 0 is 1.'.
+ELSE.
+  DO lv_number TIMES.
+    lv_factorial = lv_factorial * lv_counter.
+    lv_counter = sy-index. " sy-index is the current loop index
+  ENDDO.
+  WRITE: / 'The factorial of', lv_number, 'is', lv_factorial.
+ENDIF.
