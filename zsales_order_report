@@ -1,0 +1,9 @@
+REPORT zsales_order_report.
+
+DATA: lo_report TYPE REF TO zcl_sales_order_report.
+
+" Create an instance of the report class
+CREATE OBJECT lo_report.
+
+" Display the sales order report
+lo_report->display_report().
