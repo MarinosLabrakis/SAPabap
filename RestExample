@@ -1,0 +1,75 @@
+*data definition
+DATA: BEGIN OF ty_product,
+        id    TYPE i,
+        name  TYPE string,
+        price TYPE p DECIMALS 2,
+      END OF ty_product,
+      tt_products TYPE TABLE OF ty_product.
+
+*Service Implementation
+METHOD get_entity.
+  DATA: ls_product TYPE ty_product.
+
+  " Retrieve product from database
+  SELECT SINGLE * FROM zproducts INTO CORRESPONDING FIELDS OF ls_product
+  WHERE id = iv_entity_id.
+
+  IF sy-subrc = 0.
+    MOVE-CORRESPONDING ls_product TO er_entity.
+  ELSE.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid   = /iwbep/cx_mgw_busi_exception=>resource_not_found
+        http_status = 404.
+  ENDIF.
+ENDMETHOD.
+
+*CREATE Entity
+METHOD create_entity.
+  DATA: ls_product TYPE ty_product.
+
+  MOVE-CORRESPONDING io_data_provider->read_entry_data( ) TO ls_product.
+
+  " Validate input
+  IF ls_product-name IS INITIAL OR ls_product-price <= 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid = /iwbep/cx_mgw_busi_exception=>business_error
+        http_status = 400.
+  ENDIF.
+
+  " Insert into database
+  INSERT INTO zproducts VALUES ls_product.
+  IF sy-subrc = 0.
+    MOVE-CORRESPONDING ls_product TO er_entity.
+  ELSE.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_tech_exception
+      EXPORTING
+        textid = /iwbep/cx_mgw_tech_exception=>internal_error
+        http_status = 500.
+  ENDIF.
+ENDMETHOD.
+
+
+**service implematation
+" Metadata extension for additional functionality
+annotate entity Product with
+{
+  @UI: {
+    lineItem: [ { position: 10, importance: #HIGH } ],
+    identification: [ { position: 10 } ]
+  }
+  id;
+  
+  @UI: {
+    lineItem: [ { position: 20, importance: #HIGH } ],
+    identification: [ { position: 20 } ]
+  }
+  name;
+  
+  @UI: {
+    lineItem: [ { position: 30 } ],
+    identification: [ { position: 30 } ]
+  }
+  price;
+}
