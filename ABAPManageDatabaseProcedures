@@ -1,0 +1,48 @@
+*Example 2: ABAP Managed Database Procedures
+
+**Step 1: Create an AMDP Class
+CLASS zcl_sales_amdp DEFINITION
+  INHERITING FROM cl_sql_script
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES if_sales_amdp.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS zcl_sales_amdp IMPLEMENTATION.
+
+  METHOD if_sales_amdp~calculate_total_sales.
+    SELECT vbak~vbeln, kna1~name1, SUM(vbak~netwr) AS total_sales
+      INTO TABLE @DATA(lt_sales)
+      FROM vbak
+      INNER JOIN kna1 ON vbak~kunnr = kna1~kunnr
+      WHERE vbak~audat BETWEEN @start_date AND @end_date
+      GROUP BY vbak~vbeln, kna1~name1.
+  ENDMETHOD.
+
+ENDCLASS.
+
+**Step 2: Call the AMDP in ABAP
+REPORT zsales_amdp_report.
+
+DATA: lt_sales TYPE TABLE OF zcl_sales_amdp=>ty_sales,
+      lv_start_date TYPE d,
+      lv_end_date TYPE d.
+
+lv_start_date = '20230101'.
+lv_end_date = '20231231'.
+
+CALL METHOD zcl_sales_amdp=>calculate_total_sales
+  EXPORTING
+    start_date = lv_start_date
+    end_date = lv_end_date
+  IMPORTING
+    sales_data = lt_sales.
+
+LOOP AT lt_sales INTO DATA(ls_sale).
+  WRITE: / 'Order ID:', ls_sale-order_id,
+         'Customer Name:', ls_sale-customer_name,
+         'Total Sales:', ls_sale-total_sales.
+ENDLOOP.
