@@ -1,0 +1,41 @@
+*Example 3: SAP Fiori Elements
+
+**Step 1: Define a Business Object
+@EndUser Text.label: 'Sales Order'
+define root view entity ZSalesOrder
+  as select from vbak
+{
+  key vbeln,
+      kunnr,
+      audat,
+      netwr,
+      @UI.lineItem: [{ position: 10, label: 'Order ID' }]
+      vbeln as OrderID,
+      @UI.lineItem: [{ position: 20, label: 'Customer' }]
+      kunnr as Customer,
+      @UI.lineItem: [{ position: 30, label: 'Order Date' }]
+      audat as OrderDate,
+      @UI.lineItem: [{ position: 40, label: 'Total Amount' }]
+      netwr as TotalAmount
+}
+
+**Step 2: Create a Fiori Elements Application
+-Use the SAP Business Application Studio to create a new Fiori Elements application based on the ZSalesOrder entity.
+-Define the UI annotations in the CDS view to enhance the Fiori application.
+
+**Step 3: Implement the Fiori Application Logic
+sap.ui.define([
+  "sap/ui/core/mvc/Controller"
+], function (Controller) {
+  "use strict";
+
+  return Controller.extend("my.namespace.controller.SalesOrder", {
+    onInit: function () {
+      // Initialization logic
+    },
+
+    onFilter: function (oEvent) {
+      // Filtering logic based on user input
+    }
+  });
+});
